@@ -1092,7 +1092,7 @@ class Interfacesubtotaltrigger extends DolibarrTriggers
 
 
 		if(!empty($refExpList)){
-			$objectLabel = count($refExpList)>1?$langs->trans('LinkedShipping'):$langs->trans('LinkedShippings');
+			$objectLabel = count($refExpList)>1?$langs->trans('LinkedShippings'):$langs->trans('LinkedShipping');
 			$output.= (!empty($output)?'<br>':'').'<strong>'.$objectLabel.' :</strong> '.implode(', ', $refList) ;
 		}
 
