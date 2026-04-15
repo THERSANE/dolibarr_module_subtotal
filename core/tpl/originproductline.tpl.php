@@ -25,7 +25,7 @@ if (empty($conf) || ! is_object($conf))
 
 ?>
 
-<!-- BEGIN PHP TEMPLATE originproductline.tpl.php -->
+<!-- BEGIN PHP TEMPLATE originproductline.tpl.php subtotal -->
 <?php
 
 $selected=1;

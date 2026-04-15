@@ -857,12 +857,12 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				$_SESSION[$sessname][$object->id] = $hideInnerLines;
 
 				$hidedetails= GETPOST('hidedetails', 'int');
-				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
+				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !array_key_exists($sessname2, $_SESSION) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
 					$_SESSION[$sessname2] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname2][$object->id] = $hidedetails;
 
 				$hideprices= GETPOST('hideprices', 'int');
-				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
+				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !array_key_exists($sessname3, $_SESSION) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
 					$_SESSION[$sessname3] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname3][$object->id] = $hideprices;
 
@@ -3811,11 +3811,15 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 							if ((typeof id != 'undefined' && id.indexOf('row-') == 0) || $(item).hasClass('liste_titre'))
 							{
 								let tableNCColSelector = 'td';
-								if($(item).hasClass('liste_titre') && $(item).children('th:last-child').length > 0 &&  $(item).children('td:last-child').length == 0){
+								if (
+									$(item).hasClass('liste_titre') &&
+									$(item).children('th').length > 0 &&
+									$(item).children('td').length === 0
+								) {
 									tableNCColSelector = 'th'; // In Dolibarr V20.0 title use th instead of td
 								}
 
-								$(item).children(`${tableNCColSelector}:last-child`).before(`<${tableNCColSelector} class="subtotal_nc"></${tableNCColSelector}>`);
+								$(item).children(tableNCColSelector).last().before(`<${tableNCColSelector} class="subtotal_nc"></${tableNCColSelector}>`);
 
 								if ($(item).attr('rel') != 'subtotal' && typeof $(item).attr('id') != 'undefined')
 								{
@@ -4670,9 +4674,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 							 * @param {string} typeAction
 							 * @param {string} action
 							 * @param sendData
-							 * @param callBackFunction
+							 * @param callBackSuccessFunction
 							 */
-							o.callInterface = function ( typeAction = 'get' , action, sendData = {}, callBackFunction){
+							o.callInterface = function ( typeAction = 'get' , action, sendData = {}, callBackSuccessFunction, callBackErrorFunction = false, callBackFailFunction = false, callBackAlwaysFunction = false){
 
 								let ajaxData = {
 									'data': sendData,
@@ -4690,12 +4694,12 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 									url: o.config.interfaceUrl,
 									dataType: 'json',
 									data: ajaxData,
-									success: function (response) {
+									done: function (response) {
 
-										if (typeof callBackFunction === 'function'){
-											callBackFunction(response);
+										if (typeof callBackSuccessFunction === 'function'){
+											callBackSuccessFunction(response);
 										} else {
-											console.error('Callback function invalide for callKanbanInterface');
+											console.error('Callback function invalide for callBackSuccessFunction');
 										}
 
 										if(response.newToken != undefined){
@@ -4706,9 +4710,8 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 											o.setEventMessage(response.msg, response.result > 0 ? true : false, response.result == 0 ? true : false );
 										}
 									},
-									error: function (err) {
-
-										if(err.responseText.length > 0){
+									fail: function (err) {
+										if (err.responseText.length > 0) {
 
 											// detect login page in case of just disconnected
 											let loginPage = $(err.responseText).find('[name="actionlogin"]');
@@ -4720,11 +4723,24 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 												}, 2000);
 
 											}else{
-												o.setEventMessage(o.langs.errorAjaxCall, false);
+												if (typeof callBackFailFunction === 'function'){
+													callBackFailFunction(err);
+												} else {
+													o.setEventMessage(o.langs.errorAjaxCall, false);
+												}
 											}
 										}
 										else{
-											o.setEventMessage(o.langs.errorAjaxCall, false);
+											if (typeof callBackFailFunction === 'function'){
+												callBackFailFunction(err);
+											} else {
+												o.setEventMessage(o.langs.errorAjaxCall, false);
+											}
+										}
+									},
+									always: function (err) {
+										if (typeof callBackAlwaysFunction === 'function'){
+											callBackAlwaysFunction(err);
 										}
 									}
 								});
