@@ -1072,14 +1072,29 @@ class Interfacesubtotaltrigger extends DolibarrTriggers
 
 
 				// SELECT SHIPPING REF
-				$sqlExp = "SELECT exp.ref
+				$sqlExp = "SELECT exp.ref, exp.rowid id
 					FROM `" . MAIN_DB_PREFIX . "expedition`  exp
 					WHERE exp.`rowid` =" . $shipping->fk_target;
 
 				$resultExp = $this->db->query($sqlExp);
 				if ($resultExp) {
 					$exp = $this->db->fetch_object($resultExp);
-					$refExpList[] = $exp->ref;
+
+					$display = $exp->ref;
+
+					if(getDolGlobalInt('SUBTOTAL_ADD_TOTAL_HT_OF_SHIPMENT_TO_INVOICE')) {
+
+						if(!class_exists('Expedition'))
+						{
+							require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+						}
+						$newExp = new Expedition($this->db);
+						if ($newExp->fetch($exp->id) > 0) {
+							$display .= '&nbsp;(' . price($newExp->total_ht, 1, '', 1, -1, -1, $newExp->multicurrency_code).'HT)';
+						}
+					}
+
+					$refExpList[] = $display;
 				}
 
 			}
