@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 # [Unreleased]
 
+- FIX : NC column missing on lines reloaded or added without reloading the page (reloadDocumentLine JS hook) - *09/10/2026* - 3.27.1  
 - NEW : Use v20 dropdown for action buttons & fix buttons orders - *01/10/2024* - 3.27.0  
      Use SUBTOTAL_FORCE_EXPLODE_ACTION_BTN hidden conf to disable behavior
 - FIX : Compat V20 : Document col missing for title for NC - *16/09/2024* - 3.26.1

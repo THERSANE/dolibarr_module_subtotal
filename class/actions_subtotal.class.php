@@ -3803,7 +3803,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			<script type="text/javascript">
 				$(function() {
 					var subtotal_TSubNc = <?php echo json_encode($TSubNc); ?>;
-					$("#tablelines tr").each(function(i, item) {
+
+					// NC column cell of a line (or of the title row), not added twice
+					function subtotalAddNcCell(item) {
 						if ($(item).children('.subtotal_nc').length == 0)
 						{
 							var id = $(item).attr('id');
@@ -3832,7 +3834,20 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 								$(item).append('<td class="subtotal_nc"></td>');
 							}
 						}
+					}
+
+					$("#tablelines tr").each(function(i, item) {
+						subtotalAddNcCell(item);
 					});
+
+					// Line reloaded or added without reloading the page (ajax of other modules) : NC column of the new row
+					if (typeof Dolibarr !== 'undefined' && typeof Dolibarr.on === 'function') {
+						Dolibarr.on('reloadDocumentLine', function (data) {
+							$('#row-' + data.lineId).each(function (i, item) {
+								subtotalAddNcCell(item);
+							});
+						});
+					}
 
 					$('#tablelines tr.liste_titre:first .subtotal_nc').html(<?php echo json_encode($form->textwithtooltip($langs->trans('subtotal_nc_title'), $langs->trans('subtotal_nc_title_help'))); ?>);
 
@@ -3854,7 +3869,8 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 						});
 					}
 
-					$(".subtotal_nc_chkbx").change(function(event) {
+					// Delegated : checkboxes of the lines reloaded without reloading the page too
+					$(document).on('change', '.subtotal_nc_chkbx', function(event) {
 						var lineid = $(this).data('lineid');
 						var subtotal_nc = 0 | $(this).is(':checked'); // Renvoi 0 ou 1
 
